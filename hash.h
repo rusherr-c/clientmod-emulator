@@ -56,7 +56,7 @@ typedef struct
 //			in[16] - 
 // Output : static void
 //-----------------------------------------------------------------------------
-inline static void MD5Transform(unsigned int buf[4], unsigned int const in[16])
+inline static void _fMD5Transform(unsigned int buf[4], unsigned int const in[16])
 {
 	register unsigned int a, b, c, d;
 
@@ -144,7 +144,7 @@ inline static void MD5Transform(unsigned int buf[4], unsigned int const in[16])
 
 // Input  : *ctx - 
 //-----------------------------------------------------------------------------
-inline void MD5Init(MD5Context_t* ctx)
+inline void _fMD5Init(MD5Context_t* ctx)
 {
 	ctx->buf[0] = 0x67452301;
 	ctx->buf[1] = 0xefcdab89;
@@ -161,7 +161,7 @@ inline void MD5Init(MD5Context_t* ctx)
 //			*buf - 
 //			len - 
 //-----------------------------------------------------------------------------
-inline void MD5Update(MD5Context_t* ctx, unsigned char const* buf, unsigned int len)
+inline void _fMD5Update(MD5Context_t* ctx, unsigned char const* buf, unsigned int len)
 {
 	unsigned int t;
 
@@ -188,7 +188,7 @@ inline void MD5Update(MD5Context_t* ctx, unsigned char const* buf, unsigned int 
 		}
 		memcpy(p, buf, t);
 		//byteReverse(ctx->in, 16);
-		MD5Transform(ctx->buf, (unsigned int*)ctx->in);
+		_fMD5Transform(ctx->buf, (unsigned int*)ctx->in);
 		buf += t;
 		len -= t;
 	}
@@ -198,7 +198,7 @@ inline void MD5Update(MD5Context_t* ctx, unsigned char const* buf, unsigned int 
 	{
 		memcpy(ctx->in, buf, 64);
 		//byteReverse(ctx->in, 16);
-		MD5Transform(ctx->buf, (unsigned int*)ctx->in);
+		_fMD5Transform(ctx->buf, (unsigned int*)ctx->in);
 		buf += 64;
 		len -= 64;
 	}
@@ -213,7 +213,7 @@ inline void MD5Update(MD5Context_t* ctx, unsigned char const* buf, unsigned int 
 // Input  : digest[MD5_DIGEST_LENGTH] - 
 //			*ctx - 
 //-----------------------------------------------------------------------------
-inline void MD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5Context_t* ctx)
+inline void _fMD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5Context_t* ctx)
 {
 	unsigned count;
 	unsigned char* p;
@@ -235,7 +235,7 @@ inline void MD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5Context_t* ctx)
 		/* Two lots of padding:  Pad the first block to 64 bytes */
 		memset(p, 0, count);
 		//byteReverse(ctx->in, 16);
-		MD5Transform(ctx->buf, (unsigned int*)ctx->in);
+		_fMD5Transform(ctx->buf, (unsigned int*)ctx->in);
 
 		/* Now fill the next block with 56 bytes */
 		memset(ctx->in, 0, 56);
@@ -251,7 +251,7 @@ inline void MD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5Context_t* ctx)
 	((unsigned int*)ctx->in)[14] = ctx->bits[0];
 	((unsigned int*)ctx->in)[15] = ctx->bits[1];
 
-	MD5Transform(ctx->buf, (unsigned int*)ctx->in);
+	_fMD5Transform(ctx->buf, (unsigned int*)ctx->in);
 	//byteReverse((unsigned char *) ctx->buf, 4);
 	memcpy(digest, ctx->buf, MD5_DIGEST_LENGTH);
 	memset(ctx, 0, sizeof(ctx));        /* In case it's sensitive */
@@ -263,7 +263,7 @@ inline void MD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5Context_t* ctx)
 //			hashlen - 
 // Output : char
 //-----------------------------------------------------------------------------
-inline char* MD5_Print(unsigned char* hash, int hashlen)
+inline char* _fMD5_Print(unsigned char* hash, int hashlen)
 {
 	static char szReturn[64];
 
@@ -278,16 +278,16 @@ inline char* MD5_Print(unsigned char* hash, int hashlen)
 // Input  : seed number
 // Output : pseudo random number
 //-----------------------------------------------------------------------------
-inline unsigned int MD5_PseudoRandom(unsigned int nSeed)
+inline unsigned int _fMD5_PseudoRandom(unsigned int nSeed)
 {
 	MD5Context_t ctx;
 	unsigned char digest[MD5_DIGEST_LENGTH]; // The MD5 Hash
 
 	memset(&ctx, 0, sizeof(ctx));
 
-	MD5Init(&ctx);
-	MD5Update(&ctx, (unsigned char*)&nSeed, sizeof(nSeed));
-	MD5Final(digest, &ctx);
+	_fMD5Init(&ctx);
+	_fMD5Update(&ctx, (unsigned char*)&nSeed, sizeof(nSeed));
+	_fMD5Final(digest, &ctx);
 
 	return *(unsigned int*)(digest + 6);	// use 4 middle bytes for random value
 }

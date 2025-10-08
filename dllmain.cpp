@@ -9,6 +9,11 @@
 
 bool srcds = false; bool textmode = false;
 int (WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
+int (WINAPIV* __vswprintf)(
+	wchar_t* buffer,
+	const wchar_t* format,
+	va_list argptr
+	) = _vswprintf;
 
 #include <inetmessage.h>
 #include <inetchannelinfo.h>
@@ -46,9 +51,14 @@ class IVEngineClient;
 #include "Public/Encryption/SHA.h"
 #include "Emulators/RevEmu2013.h"
 
+#include <shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+
 using namespace std;
 
 #include <fstream>
+
+
 ofstream logfile;
 #ifdef DEBUG
 #include <iomanip>
@@ -1028,9 +1038,9 @@ void __fastcall hkWriteListenEventList(CGameEventManager* _this, void* edx, int 
 #define SIGNONSTATE_CHANGELEVEL	7	// server is changing level, please wait
 
 
-void MD5UpdateString(MD5Context_t* ctx, std::string str)
+void _fMD5UpdateString(MD5Context_t* ctx, std::string str)
 {
-	MD5Update(ctx, (unsigned char*)(str.c_str()), str.length());
+	_fMD5Update(ctx, (unsigned char*)(str.c_str()), str.length());
 }
 
 void BinaryToReadable(unsigned char* in, size_t inlen, std::string& out)
@@ -1049,7 +1059,7 @@ void GenerateFriendsName(char* friendsName, size_t uMaxLength)
 	MD5Context_t ctx;
 	unsigned char digest[16];
 
-	MD5Init(&ctx);
+	_fMD5Init(&ctx);
 
 	ctx.buf[0] += 0x20;
 	ctx.buf[1] -= 0x12;
@@ -1061,9 +1071,9 @@ void GenerateFriendsName(char* friendsName, size_t uMaxLength)
 		_CM->PlayerSlot + 1, _CM->UserID, _CM->Map, _CM->Port, _CM->MaxPlayers, _CM->ServerCount, _CM->FriendsID);
 
 	printfdbg("Key %s\n", md5string);
-	MD5UpdateString(&ctx, md5string);
+	_fMD5UpdateString(&ctx, md5string);
 
-	MD5Final(digest, &ctx);
+	_fMD5Final(digest, &ctx);
 
 	for (size_t i = 0; i < sizeof(digest); i++)
 	{
@@ -1210,8 +1220,6 @@ bool __fastcall hkDispatchUserMessage(DWORD* this_, void* edx, int msg_type, bf_
 	return DispatchUserMessage(this_, msg_type, msg_data);
 }
 
-#include <shlwapi.h>
-#pragma comment(lib, "Shlwapi.lib")
 DWORD dwDownloadManager_Queue;
 typedef void(__thiscall* pDownloadManager_Queue)(DWORD* this_, char* Source, char* Str);
 void __fastcall hkDownloadManager_Queue(DWORD* this_, void* unk, char* baseURL, char* gamePath)
